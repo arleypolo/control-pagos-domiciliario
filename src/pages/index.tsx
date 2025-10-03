@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { supabase } from "./lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Home() {
 console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
