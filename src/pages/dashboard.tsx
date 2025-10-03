@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "./lib/supabaseClient";
 import { isWorkingDay } from "../utils/schedule";
 import { format, parseISO } from "date-fns";
@@ -32,8 +32,7 @@ export default function Dashboard() {
     const [montoBase, setMontoBase] = useState(50000);
     const [total, setTotal] = useState(0);
     const [abierto, setAbierto] = useState<{ [mes: string]: boolean }>({});
-
-    const hoy = new Date();
+    const hoy = useMemo(() => new Date(), []);
 
     useEffect(() => {
         if (isWorkingDay(hoy)) {
@@ -41,7 +40,7 @@ export default function Dashboard() {
         } else {
             setMontoBase(0);
         }
-    }, []);
+    }, [hoy]);
 
     useEffect(() => {
         setTotal(montoBase + Number(comisiones || 0));

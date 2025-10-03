@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "./lib/supabaseClient";
+import Link from "next/link";
 
 export default function RegisterPage() {
     const [email, setEmail] = useState("");
@@ -89,7 +90,7 @@ export default function RegisterPage() {
                 </button>
                 <p style={{ fontSize: "0.95rem", color: "#555", textAlign: "center", margin: 0 }}>
                     ¿Ya tienes cuenta?{" "}
-                    <a
+                    <Link
                         href="/login"
                         style={{
                             color: "#6366f1",
@@ -98,7 +99,7 @@ export default function RegisterPage() {
                         }}
                     >
                         Inicia sesión
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>
