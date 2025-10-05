@@ -230,7 +230,8 @@ export default function Dashboard() {
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "space-between",
-                                        gap: "0.5rem"
+                                        gap: "0.5rem",
+                                        flexWrap: "wrap"
                                     }}
                                 >
                                     <span
@@ -239,7 +240,9 @@ export default function Dashboard() {
                                             fontSize: "1.1rem",
                                             color: "#6366f1",
                                             wordBreak: "break-word",
-                                            cursor: "pointer"
+                                            cursor: "pointer",
+                                            flex: 1,
+                                            minWidth: 0
                                         }}
                                         onClick={() => setAbierto((prev) => ({
                                             ...prev,
@@ -260,11 +263,14 @@ export default function Dashboard() {
                                             fontSize: "0.95rem",
                                             cursor: "pointer",
                                             transition: "background 0.2s",
+                                            marginLeft: "0.5rem",
+                                            marginRight: "0.5rem",
+                                            flexShrink: 0
                                         }}
                                     >
                                         Ver total
                                     </button>
-                                    <span style={{ fontSize: "1.3rem", color: "#6366f1", cursor: "pointer" }}
+                                    <span style={{ fontSize: "1.3rem", color: "#6366f1", cursor: "pointer", flexShrink: 0 }}
                                         onClick={() => setAbierto((prev) => ({
                                             ...prev,
                                             [mes]: !prev[mes],
@@ -327,6 +333,8 @@ export default function Dashboard() {
                         alignItems: "center",
                         justifyContent: "center",
                         zIndex: 1000,
+                        padding: "1rem",
+                        boxSizing: "border-box"
                     }}
                     onClick={() => setModalMes(null)}
                 >
@@ -336,10 +344,12 @@ export default function Dashboard() {
                             borderRadius: "1rem",
                             padding: "2rem 1.5rem",
                             minWidth: "260px",
-                            maxWidth: "90vw",
+                            maxWidth: "98vw",
                             boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
                             textAlign: "center",
                             position: "relative",
+                            width: "100%",
+                            boxSizing: "border-box"
                         }}
                         onClick={e => e.stopPropagation()}
                     >
@@ -359,10 +369,10 @@ export default function Dashboard() {
                         >
                             ×
                         </button>
-                        <h3 style={{ margin: "0 0 1rem 0", color: "#6366f1" }}>
+                        <h3 style={{ margin: "0 0 1rem 0", color: "#6366f1", fontSize: "1.1rem" }}>
                             Total de {modalMes.charAt(0).toUpperCase() + modalMes.slice(1)}
                         </h3>
-                        <div style={{ fontSize: "2rem", fontWeight: 700, color: "#222" }}>
+                        <div style={{ fontSize: "2rem", fontWeight: 700, color: "#222", wordBreak: "break-word" }}>
                             {totalMes.toLocaleString("es-CO")} COP
                         </div>
                     </div>
@@ -377,6 +387,12 @@ export default function Dashboard() {
                     }
                     h1, h2 {
                         font-size: 1.3rem !important;
+                    }
+                    button {
+                        font-size: 1rem !important;
+                    }
+                    .modal-content {
+                        padding: 1.2rem 0.5rem !important;
                     }
                 }
                 `}
