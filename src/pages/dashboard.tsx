@@ -33,6 +33,13 @@ export default function Dashboard() {
     const [total, setTotal] = useState(0);
     const [abierto, setAbierto] = useState<{ [mes: string]: boolean }>({});
     const hoy = useMemo(() => new Date(), []);
+    const [fechaSeleccionada, setFechaSeleccionada] = useState(() => {
+        const hoy = new Date();
+        return hoy.toISOString().split("T")[0];
+    });
+
+    // Modal state
+    const [modalMes, setModalMes] = useState<string | null>(null);
 
     useEffect(() => {
         if (isWorkingDay(hoy)) {
@@ -61,7 +68,7 @@ export default function Dashboard() {
 
         const { error } = await supabase.from("pagos").insert([
             {
-                fecha: hoy.toISOString().split("T")[0],
+                fecha: fechaSeleccionada,
                 monto: montoBase,
                 total: total,
                 user_id: user.id,
@@ -80,6 +87,11 @@ export default function Dashboard() {
     }, []);
 
     const pagosPorMes = agruparPagosPorMes(pagos);
+
+    // Suma total del mes seleccionado
+    const totalMes = modalMes && pagosPorMes[modalMes]
+        ? pagosPorMes[modalMes].reduce((acc, p) => acc + (p.total || 0), 0)
+        : 0;
 
     return (
         <div
@@ -123,6 +135,22 @@ export default function Dashboard() {
                         <p style={{ margin: 0, color: "#222" }}>
                             Monto base: <b>{montoBase.toLocaleString("es-CO")} COP</b>
                         </p>
+
+                        <input
+                            type="date"
+                            value={fechaSeleccionada}
+                            onChange={(e) => setFechaSeleccionada(e.target.value)}
+                            style={{
+                                padding: "0.75rem 1rem",
+                                borderRadius: "0.5rem",
+                                border: "1px solid #e5e7eb",
+                                fontSize: "1rem",
+                                outline: "none",
+                                transition: "border 0.2s",
+                                width: "100%",
+                                boxSizing: "border-box",
+                            }}
+                        />
 
                         <input
                             type="number"
@@ -202,24 +230,46 @@ export default function Dashboard() {
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "space-between",
-                                        cursor: "pointer",
+                                        gap: "0.5rem"
                                     }}
-                                    onClick={() =>
-                                        setAbierto((prev) => ({
+                                >
+                                    <span
+                                        style={{
+                                            fontWeight: 600,
+                                            fontSize: "1.1rem",
+                                            color: "#6366f1",
+                                            wordBreak: "break-word",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => setAbierto((prev) => ({
                                             ...prev,
                                             [mes]: !prev[mes],
-                                        }))
-                                    }
-                                >
-                                    <span style={{
-                                        fontWeight: 600,
-                                        fontSize: "1.1rem",
-                                        color: "#6366f1",
-                                        wordBreak: "break-word"
-                                    }}>
+                                        }))}
+                                    >
                                         {mes.charAt(0).toUpperCase() + mes.slice(1)}
                                     </span>
-                                    <span style={{ fontSize: "1.3rem", color: "#6366f1" }}>
+                                    <button
+                                        onClick={() => setModalMes(mes)}
+                                        style={{
+                                            padding: "0.4rem 0.9rem",
+                                            borderRadius: "0.5rem",
+                                            border: "none",
+                                            background: "linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)",
+                                            color: "#fff",
+                                            fontWeight: 500,
+                                            fontSize: "0.95rem",
+                                            cursor: "pointer",
+                                            transition: "background 0.2s",
+                                        }}
+                                    >
+                                        Ver total
+                                    </button>
+                                    <span style={{ fontSize: "1.3rem", color: "#6366f1", cursor: "pointer" }}
+                                        onClick={() => setAbierto((prev) => ({
+                                            ...prev,
+                                            [mes]: !prev[mes],
+                                        }))}
+                                    >
                                         {abierto[mes] ? "▲" : "▼"}
                                     </span>
                                 </div>
@@ -263,6 +313,61 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+            {/* Modal */}
+            {modalMes && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        background: "rgba(0,0,0,0.25)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setModalMes(null)}
+                >
+                    <div
+                        style={{
+                            background: "#fff",
+                            borderRadius: "1rem",
+                            padding: "2rem 1.5rem",
+                            minWidth: "260px",
+                            maxWidth: "90vw",
+                            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                            textAlign: "center",
+                            position: "relative",
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setModalMes(null)}
+                            style={{
+                                position: "absolute",
+                                top: "1rem",
+                                right: "1rem",
+                                background: "none",
+                                border: "none",
+                                fontSize: "1.5rem",
+                                color: "#6366f1",
+                                cursor: "pointer",
+                            }}
+                            aria-label="Cerrar"
+                        >
+                            ×
+                        </button>
+                        <h3 style={{ margin: "0 0 1rem 0", color: "#6366f1" }}>
+                            Total de {modalMes.charAt(0).toUpperCase() + modalMes.slice(1)}
+                        </h3>
+                        <div style={{ fontSize: "2rem", fontWeight: 700, color: "#222" }}>
+                            {totalMes.toLocaleString("es-CO")} COP
+                        </div>
+                    </div>
+                </div>
+            )}
             <style>
                 {`
                 @media (max-width: 600px) {
