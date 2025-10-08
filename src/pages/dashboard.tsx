@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { isWorkingDay } from "../utils/schedule";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { Switch } from "@headlessui/react";
 
 interface Pago {
     id: string;
@@ -32,22 +32,40 @@ export default function Dashboard() {
     const [montoBase, setMontoBase] = useState(50000);
     const [total, setTotal] = useState(0);
     const [abierto, setAbierto] = useState<{ [mes: string]: boolean }>({});
-    const hoy = useMemo(() => new Date(), []);
     const [fechaSeleccionada, setFechaSeleccionada] = useState(() => {
         const hoy = new Date();
         return hoy.toISOString().split("T")[0];
     });
 
-    // Modal state
     const [modalMes, setModalMes] = useState<string | null>(null);
 
+    const [descansoHoy, setDescansoHoy] = useState<boolean>(false);
+
     useEffect(() => {
-        if (isWorkingDay(hoy)) {
-            setMontoBase(50000);
-        } else {
-            setMontoBase(0);
+        if (typeof window !== "undefined") {
+            const guardado = window.localStorage.getItem("descansoHoy");
+            const fechaGuardada = window.localStorage.getItem("descansoHoyFecha");
+            const hoyStr = new Date().toISOString().split("T")[0];
+            if (fechaGuardada !== hoyStr) {
+                window.localStorage.setItem("descansoHoyFecha", hoyStr);
+                window.localStorage.setItem("descansoHoy", JSON.stringify(false));
+                setDescansoHoy(false);
+            } else if (guardado) {
+                setDescansoHoy(JSON.parse(guardado));
+            }
         }
-    }, [hoy]);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            window.localStorage.setItem("descansoHoy", JSON.stringify(descansoHoy));
+            window.localStorage.setItem("descansoHoyFecha", new Date().toISOString().split("T")[0]);
+        }
+    }, [descansoHoy]);
+
+    useEffect(() => {
+        setMontoBase(descansoHoy ? 0 : 50000);
+    }, [descansoHoy]);
 
     useEffect(() => {
         setTotal(montoBase + Number(comisiones || 0));
@@ -88,7 +106,6 @@ export default function Dashboard() {
 
     const pagosPorMes = agruparPagosPorMes(pagos);
 
-    // Suma total del mes seleccionado
     const totalMes = modalMes && pagosPorMes[modalMes]
         ? pagosPorMes[modalMes].reduce((acc, p) => acc + (p.total || 0), 0)
         : 0;
@@ -129,7 +146,25 @@ export default function Dashboard() {
                     Control de Pagos
                 </h1>
 
-                {isWorkingDay(hoy) ? (
+                {}
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
+                    <Switch
+                        checked={descansoHoy}
+                        onChange={setDescansoHoy}
+                        className={`${descansoHoy ? 'bg-indigo-600' : 'bg-gray-200'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    >
+                        <span
+                            className={`${descansoHoy ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                        />
+                    </Switch>
+                </div>
+                {}
+
+                {descansoHoy ? (
+                    <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "1.1rem" }}>
+                        Hoy descansas <span role="img" aria-label="descanso">😴</span>
+                    </p>
+                ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                         <p style={{ margin: 0, color: "#6366f1", fontWeight: 600 }}>Hoy trabajas</p>
                         <p style={{ margin: 0, color: "#222" }}>
@@ -192,10 +227,6 @@ export default function Dashboard() {
                             Registrar
                         </button>
                     </div>
-                ) : (
-                    <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "1.1rem" }}>
-                        Hoy descansas <span role="img" aria-label="descanso">😴</span>
-                    </p>
                 )}
 
                 <div>
